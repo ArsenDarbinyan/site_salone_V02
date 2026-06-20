@@ -1576,11 +1576,12 @@ async function toggleMasterCard(masterId) {
 
     const isExpanding = !card.classList.contains('expanded') && !card.classList.contains('content-active');
     const button = card.querySelector('.master-expand-btn');
+    let scrollTarget = null;
 
     if (!isExpanding && button) {
         const rect = button.getBoundingClientRect();
-        const targetTop = window.pageYOffset + rect.top - 115;
-        requestAnimationFrame(() => smoothScrollTo(targetTop, 320));
+        scrollTarget = window.pageYOffset + rect.top - 115;
+        requestAnimationFrame(() => smoothScrollTo(scrollTarget, 320));
     }
 
     await runExpandableCardToggle(masterToggleGenRef, '.master-card', card, {
@@ -1589,6 +1590,16 @@ async function toggleMasterCard(masterId) {
         detailsSelector: '.master-details',
         btnSelector: '.master-expand-btn',
     });
+
+    if (scrollTarget !== null && button) {
+        setTimeout(() => {
+            const rect = button.getBoundingClientRect();
+            const finalTarget = window.pageYOffset + rect.top - 115;
+            if (Math.abs(finalTarget - window.pageYOffset) > 20) {
+                smoothScrollTo(finalTarget, 280);
+            }
+        }, 140);
+    }
 }
 
 let ab = 0;
@@ -1675,6 +1686,8 @@ async function toggleServiceCard(serviceId) {
             btnSelector: '.expand-btn',
         });
     } else {
+        requestAnimationFrame(() => scrollServiceCardIntoView(card));
+
         await runExpandableCardToggle(serviceToggleGenRef, '.service-card', card, {
             details: card.querySelector('.service-details'),
             btn: card.querySelector('.expand-btn'),
@@ -1689,7 +1702,9 @@ async function toggleServiceCard(serviceId) {
             card.style.order = '';
         }
 
-        requestAnimationFrame(() => scheduleServiceScroll(card));
+        setTimeout(() => {
+            scrollServiceCardIntoView(card);
+        }, 120);
     }
 }
 
